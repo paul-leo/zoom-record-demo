@@ -1,0 +1,14 @@
+{
+  "name": "meeting-capture-lab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Minimal, honest PoC: can an Electron app detect a meeting window and record both sides of the audio? (mic + system loopback)",
+  "license": "MIT",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "devDependencies": {
+    "electron": "38.2.2"
+  }
+}

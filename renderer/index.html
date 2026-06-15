@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Meeting Capture Lab</title>
+  <style>
+    :root { color-scheme: dark; }
+    body { font: 14px/1.5 -apple-system, system-ui, sans-serif; margin: 0; background: #14151a; color: #e6e7eb; }
+    header { padding: 16px 20px; border-bottom: 1px solid #2a2c34; }
+    h1 { font-size: 15px; margin: 0; font-weight: 600; }
+    .sub { color: #8b8d98; font-size: 12px; margin-top: 4px; }
+    main { padding: 20px; display: grid; gap: 16px; }
+    .card { background: #1c1e26; border: 1px solid #2a2c34; border-radius: 10px; padding: 16px; }
+    .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    button { font: inherit; background: #2f6df6; color: #fff; border: 0; border-radius: 7px; padding: 7px 14px; cursor: pointer; }
+    button.ghost { background: #2a2c34; }
+    button:disabled { opacity: .45; cursor: not-allowed; }
+    .pill { padding: 2px 8px; border-radius: 999px; font-size: 12px; background: #2a2c34; }
+    .pill.ok { background: #18432a; color: #6ee7a0; }
+    .pill.warn { background: #4a3410; color: #f5c451; }
+    .pill.bad { background: #4a1818; color: #f58a8a; }
+    #log { font: 12px/1.5 ui-monospace, Menlo, monospace; background: #101117; border-radius: 8px; padding: 12px; height: 220px; overflow: auto; white-space: pre-wrap; color: #b9bcc8; }
+    #banner { display: none; }
+    #banner.show { display: flex; justify-content: space-between; align-items: center; background: #18432a; border-color: #2a6b44; }
+    audio { width: 100%; margin-top: 8px; }
+    .k { color: #8b8d98; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Meeting Capture Lab</h1>
+    <div class="sub">Detect a meeting window → capture mic + system audio → record. Honest about what works per-platform.</div>
+  </header>
+
+  <main>
+    <div class="card">
+      <div class="row">
+        <span class="k">permissions:</span>
+        <span id="perm-screen" class="pill">screen ?</span>
+        <span id="perm-mic" class="pill">mic ?</span>
+        <span class="k" style="margin-left:auto">detection:</span>
+        <span id="det-state" class="pill">idle</span>
+      </div>
+    </div>
+
+    <div id="banner" class="card">
+      <div><strong id="banner-app">Meeting</strong> detected — record this call?</div>
+      <div class="row">
+        <button id="btn-start">Start recording</button>
+        <button id="btn-dismiss" class="ghost">Dismiss</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <button id="btn-init">Start detection</button>
+        <button id="btn-list" class="ghost">List windows</button>
+        <button id="btn-stop" class="ghost" disabled>Stop recording</button>
+      </div>
+      <div id="result"></div>
+    </div>
+
+    <div class="card">
+      <div class="k" style="margin-bottom:8px">event log</div>
+      <div id="log"></div>
+    </div>
+  </main>
+
+  <script src="recorder.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
