@@ -1,0 +1,53 @@
+{
+  "name": "meetcap-detector",
+  "version": "0.1.0",
+  "description": "Detect native meeting clients (Zoom / Teams / Tencent / Lark) by window title + process name, with custom rules. Electron.",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    "./main": { "types": "./dist/main.d.ts", "default": "./dist/main.js" },
+    "./renderer": { "types": "./dist/renderer.d.ts", "default": "./dist/renderer.js" },
+    "./react": { "types": "./dist/react.d.ts", "default": "./dist/react.js" },
+    "./vue": { "types": "./dist/vue.d.ts", "default": "./dist/vue.js" },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "publishConfig": { "access": "public" },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/paul-leo/zoom-record-demo.git",
+    "directory": "packages/detector"
+  },
+  "keywords": ["electron", "zoom", "meeting", "detection", "desktop-capturer", "ps-list", "meetcap"],
+  "dependencies": {
+    "meetcap-core": "workspace:*",
+    "ps-list": "^9.0.0"
+  },
+  "peerDependencies": {
+    "electron": ">=31 <39",
+    "react": ">=17",
+    "vue": ">=3"
+  },
+  "peerDependenciesMeta": {
+    "electron": { "optional": true },
+    "react": { "optional": true },
+    "vue": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.18",
+    "electron": "38.2.2",
+    "react": "^18.3.1",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8",
+    "vue": "^3.5.13"
+  }
+}

@@ -1,55 +1,108 @@
-# Meeting Capture Lab
+# meetcap
 
-A minimal, **honest** proof-of-concept for one question:
+**Detect a meeting and record both sides of the audio — in any Electron app.**
 
-> Can an Electron app detect that a meeting is happening (Zoom / Meet / Teams / etc.)
-> and record **both sides** of the audio — your microphone *and* the other party's
-> voice (system / loopback audio)?
+meetcap answers one question honestly: can an Electron app notice you've joined a meeting (Zoom / Teams / 腾讯会议 / 飞书) and record *both* your microphone *and* the other party's voice (system / loopback audio), then save it locally — with a hardened, production-style config?
 
-The hard part is not detection. It's capturing system audio, which behaves very
-differently across platforms. This repo exists to find out exactly where it
-works and where it doesn't, instead of guessing.
+It ships as two focused packages plus a shared core, so you take only what you need.
 
-## What it does
+| Package | What it does |
+|---|---|
+| [`meetcap-detector`](packages/detector) | Detect that a meeting client is in a call, by window title + process name, with custom rules. |
+| [`meetcap-recorder`](packages/recorder) | Record mic + system (loopback) audio and save to disk. Real macOS loopback. |
+| [`meetcap-core`](packages/core) | Shared types, the IPC contract, and the `window.meetcap` preload bridge. |
 
-1. **Detect** — polls open window titles via `desktopCapturer` (main process) and
-   matches them against meeting-app patterns. No accessibility hacks, no private APIs.
-2. **Prompt** — shows a banner when a meeting window appears.
-3. **Capture** — mixes `getUserMedia(mic)` + system/loopback audio into one stream
-   with the Web Audio API.
-4. **Record** — `MediaRecorder` → a playable `audio/webm` blob.
+Each renderer half ships **framework-agnostic events**, plus **React hooks** and **Vue composables**.
 
-Every internal step is logged in the UI so you can see precisely what succeeds.
-
-## Why a hardened config
-
-`main.js` deliberately uses `contextIsolation: true`, `nodeIntegration: false`,
-`sandbox: false` — a production-style setup. Under it the renderer cannot
-`require('electron')`, and `desktopCapturer` is main-process only. So detection and
-screen-source enumeration live in main and are exposed over a tiny IPC bridge
-(`preload.js`). This way the result transfers to a real app with the same config —
-a PoC that cheats with `nodeIntegration: true` proves nothing.
-
-## Known platform reality
-
-- **System/loopback audio on macOS** is the make-or-break step. Chromium's
-  `chromeMediaSource: 'desktop'` audio is unreliable on macOS; you typically need
-  a virtual audio device (e.g. BlackHole) or, on Electron 38, the
-  `setDisplayMediaRequestHandler(..., { audio: 'loopback' })` path this repo wires up.
-  The log will say `⚠️ EMPTY — no loopback` when the system track comes back empty.
-- **Windows / Linux**: loopback via the desktop capturer is generally more cooperative.
-- **Microphone + window detection** work on all three given OS permissions.
-
-## Run
+## Quick start
 
 ```bash
-npm install
-npm start
+npm install meetcap-detector meetcap-recorder meetcap-core
 ```
 
-On macOS, grant **Screen Recording** and **Microphone** permission to Electron
-(System Settings → Privacy & Security), then restart the app. The permission
-pills at the top show live status.
+```ts
+// main.ts — runs before app.whenReady()
+import { initRecorderMain } from 'meetcap-recorder/main'
+import { startDetector } from 'meetcap-detector/main'
+initRecorderMain()
+app.whenReady().then(() => { createWindow(); startDetector({ require: 'window' }) })
+
+// preload.ts
+import { contextBridge, ipcRenderer } from 'electron'
+import { exposeMeetcapBridge } from 'meetcap-core/preload'
+exposeMeetcapBridge(contextBridge, ipcRenderer)
+
+// renderer
+import { createDetectorClient } from 'meetcap-detector/renderer'
+import { createRecorder } from 'meetcap-recorder/renderer'
+const detector = createDetectorClient()
+const recorder = createRecorder()
+detector.on('meeting-detected', (m) => recorder.start(m))
+recorder.on('complete', (r) => recorder.save(r))
+```
+
+See [`examples/electron-demo`](examples/electron-demo) for a complete, runnable app.
+
+## Architecture: who runs where
+
+Electron splits this work across two processes; meetcap hides the split behind `/main` and `/renderer` entries.
+
+```
+ main process                          renderer process
+ ────────────                          ────────────────
+ desktopCapturer (window titles)  ┐
+ ps-list (process names)          �├─ detect ──► broadcast ──► createDetectorClient / hooks
+ rule engine                      ┘                              (meeting-detected / ended)
+
+ initMain() loopback flags        ┐                          getUserMedia(mic)
+ save-recording (fs)              ┤◄─ window.meetcap (IPC) ─►  getDisplayMedia(loopback)
+ media-access                     ┘                          AudioContext mix → MediaRecorder
+```
+
+- **Detection** is essentially main-process — `desktopCapturer` and `ps-list` are main-only. The poller broadcasts edge events; the renderer just subscribes.
+- **Recording** is renderer-process capture (`getUserMedia` / `getDisplayMedia` / `MediaRecorder`) plus main-process flag injection and disk writes.
+
+## Platform support
+
+| | Detection | Mic | System / loopback audio |
+|---|---|---|---|
+| **macOS 13.2+** | ✅ window + process | ✅ | ✅ via `MacLoopbackAudioForScreenShare` flags (injected) |
+| **macOS < 13.2** | ✅ | ✅ | ⚠️ may be empty → records mic-only, `hasSystemAudio:false` |
+| **Windows 10+** | ✅ | ✅ | ✅ WASAPI loopback |
+| **Linux** | ✅ | ✅ | ✅ PulseAudio |
+
+On macOS, grant **Screen Recording** + **Microphone** to your app (System Settings → Privacy & Security), then restart.
+
+## Custom rules
+
+Adapt to any meeting client without touching meetcap internals:
+
+```ts
+import { presets } from 'meetcap-detector'
+startDetector({
+  rules: [...presets, { id: 'mymeet', app: 'MyMeet', window: [/MyMeet 通话/], process: [/mymeet/i] }],
+})
+```
+
+Strings match as case-insensitive substrings, RegExps test directly, or pass a function. See [meetcap-detector](packages/detector#custom-rules).
+
+## Known limitations
+
+- **Browser-based meetings** (Google Meet / Zoom Web in a tab) are **not** reliably detected — a browser tab has no distinctive process and a messy title. Recording still works (loopback captures whatever plays), only auto-detection is out of scope for now.
+- No transcription / speaker diarization yet — meetcap captures audio; turning it into notes is downstream.
+
+## Develop
+
+```bash
+pnpm install
+pnpm build        # turbo: builds all packages
+pnpm test         # vitest: rule engine, state machine, pure helpers
+pnpm demo         # build + launch examples/electron-demo
+```
+
+## Release
+
+Changesets-driven. In a PR: `pnpm changeset` to declare bumps. On merge to `main`, CI opens a **Version Packages** PR; merging it publishes to npm (OIDC trusted publishing with NPM_TOKEN fallback). See `.github/workflows/release.yml`.
 
 ## License
 

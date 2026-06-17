@@ -1,18 +1,23 @@
 {
-  "name": "meeting-capture-lab",
-  "version": "0.1.0",
+  "name": "meetcap-monorepo",
+  "version": "0.0.0",
   "private": true,
-  "description": "Minimal, honest PoC: can an Electron app detect a meeting window and record both sides of the audio? (mic + system loopback)",
+  "description": "meetcap — detect meeting apps and record both sides of the audio in Electron",
   "license": "MIT",
-  "main": "main.js",
+  "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "start": "electron ."
+    "build": "turbo build",
+    "typecheck": "turbo typecheck",
+    "test": "vitest run",
+    "demo": "pnpm --filter electron-demo start",
+    "changeset": "changeset",
+    "version-packages": "changeset version",
+    "release": "turbo build && bash scripts/release-publish.sh"
   },
   "devDependencies": {
-    "electron": "38.2.2"
-  },
-  "dependencies": {
-    "electron-audio-loopback": "^1.0.6",
-    "ps-list": "^9.0.0"
+    "@changesets/cli": "^2.27.9",
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.8"
   }
 }

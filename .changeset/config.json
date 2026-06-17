@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/@changesets/config@3.0.0/schema.json",
+  "changelog": "@changesets/cli/changelog",
+  "commit": false,
+  "fixed": [],
+  "linked": [["meetcap-core", "meetcap-detector", "meetcap-recorder"]],
+  "access": "public",
+  "baseBranch": "main",
+  "updateInternalDependencies": "patch",
+  "ignore": ["electron-demo"]
+}

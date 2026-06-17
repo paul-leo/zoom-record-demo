@@ -1,0 +1,96 @@
+name: Release
+
+# Changesets-driven release flow.
+#
+# On every push to main, this workflow either:
+#   (a) opens / updates a "Version Packages" PR that, when merged, bumps
+#       package.json versions and consumes all pending .changeset/*.md files, OR
+#   (b) if the Version Packages PR was just merged (versions bumped, no
+#       remaining changesets), publishes the affected packages to npm via
+#       scripts/release-publish.sh.
+#
+# How to ship a change:
+#   1. In your feature PR run `pnpm changeset` to declare which packages
+#      changed and at what semver level. Commit the generated .changeset/*.md.
+#   2. Merge the feature PR into main.
+#   3. This workflow opens/updates a "Version Packages" PR. Review, then merge.
+#   4. On that merge, the workflow flips into publish mode and ships.
+
+on:
+    push:
+        branches:
+            - main
+
+permissions:
+    contents: write
+    pull-requests: write
+    id-token: write
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    release:
+        name: Version PR / Publish
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+              with:
+                  fetch-depth: 0
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@a7487c7e89a18df4991f7f222e4898a00d66ddda # v4.1.0
+              with:
+                  version: 9.15.0
+                  run_install: false
+
+            - name: Setup Node.js
+              uses: actions/setup-node@1d0ff469b7ec7b3cb9d8673fde0c81c44821de2a # v4.2.0
+              with:
+                  node-version: '20'
+                  cache: 'pnpm'
+                  registry-url: 'https://registry.npmjs.org'
+
+            - name: Upgrade npm CLI for OIDC trusted publishing
+              run: |
+                  npm install -g npm@latest
+                  npm --version
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile --ignore-scripts
+
+            - name: Verify dependency signatures
+              run: npm audit signatures || echo "::warning::audit signatures reported issues"
+
+            - name: Typecheck
+              run: pnpm typecheck
+
+            - name: Build
+              run: pnpm build
+
+            - name: Test
+              run: pnpm test
+
+            - name: Open Version PR or publish
+              id: changesets
+              uses: changesets/action@63a615b9cd06ba9a3e6d13796c7fbcb080a60a0b # v1.4.10
+              with:
+                  version: pnpm version-packages
+                  publish: pnpm release
+                  commit: "chore(release): version packages"
+                  title: "chore(release): version packages"
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_DIST_TAG: latest
+
+            - name: Create GitHub Release
+              if: steps.changesets.outputs.published == 'true'
+              uses: softprops/action-gh-release@72f2c25fcb47643c292f7107632f7a47c1df5cd8 # v2.3.2
+              with:
+                  generate_release_notes: true
+                  draft: false
