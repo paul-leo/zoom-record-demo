@@ -29,9 +29,12 @@ importers:
       meetcap-detector:
         specifier: workspace:*
         version: link:../../packages/detector
-      meetcap-recorder:
+      meetcap-recorder-main:
         specifier: workspace:*
-        version: link:../../packages/recorder
+        version: link:../../packages/recorder-main
+      meetcap-recorder-renderer:
+        specifier: workspace:*
+        version: link:../../packages/recorder-renderer
     devDependencies:
       '@harness-fe/runtime':
         specifier: ^4.1.0
@@ -70,26 +73,17 @@ importers:
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.21
-      '@types/react':
-        specifier: ^18.3.18
-        version: 18.3.31
       electron:
         specifier: 38.2.2
         version: 38.2.2
-      react:
-        specifier: ^18.3.1
-        version: 18.3.1
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
       vitest:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.21)
-      vue:
-        specifier: ^3.5.13
-        version: 3.5.38(typescript@5.9.3)
 
-  packages/recorder:
+  packages/recorder-main:
     dependencies:
       electron-audio-loopback:
         specifier: ^1.0.6
@@ -101,12 +95,22 @@ importers:
       '@types/node':
         specifier: ^22.10.2
         version: 22.19.21
-      '@types/react':
-        specifier: ^18.3.18
-        version: 18.3.31
       electron:
         specifier: 38.2.2
         version: 38.2.2
+      typescript:
+        specifier: ^5.6.3
+        version: 5.9.3
+
+  packages/recorder-renderer:
+    dependencies:
+      meetcap-core:
+        specifier: workspace:*
+        version: link:../core
+    devDependencies:
+      '@types/react':
+        specifier: ^18.3.18
+        version: 18.3.31
       react:
         specifier: ^18.3.1
         version: 18.3.1

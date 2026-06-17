@@ -14,7 +14,7 @@
 void import('@harness-fe/runtime')
 
 import { createDetectorClient } from 'meetcap-detector/renderer'
-import { createRecorder } from 'meetcap-recorder/renderer'
+import { createRecorder } from 'meetcap-recorder-renderer'
 import type { MeetingInfo } from 'meetcap-core'
 
 const $ = (id: string) => document.getElementById(id) as HTMLElement

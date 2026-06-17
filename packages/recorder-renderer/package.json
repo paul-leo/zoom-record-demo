@@ -1,15 +1,13 @@
 {
-  "name": "meetcap-recorder",
+  "name": "meetcap-recorder-renderer",
   "version": "0.1.0",
-  "description": "Record microphone + system (loopback) audio in Electron and save to disk. Real macOS loopback via electron-audio-loopback.",
+  "description": "Renderer-process capture for meetcap: mic + system (loopback) audio, mix, record to webm, save. Framework-agnostic + React/Vue hooks.",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
     ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
-    "./main": { "types": "./dist/main.d.ts", "default": "./dist/main.js" },
-    "./renderer": { "types": "./dist/renderer.d.ts", "default": "./dist/renderer.js" },
     "./react": { "types": "./dist/react.d.ts", "default": "./dist/react.js" },
     "./vue": { "types": "./dist/vue.d.ts", "default": "./dist/vue.js" },
     "./package.json": "./package.json"
@@ -24,27 +22,22 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paul-leo/zoom-record-demo.git",
-    "directory": "packages/recorder"
+    "directory": "packages/recorder-renderer"
   },
-  "keywords": ["electron", "audio", "recorder", "loopback", "system-audio", "mediarecorder", "meetcap"],
+  "keywords": ["electron", "audio", "recorder", "loopback", "mediarecorder", "react", "vue", "meetcap"],
   "dependencies": {
-    "meetcap-core": "workspace:*",
-    "electron-audio-loopback": "^1.0.6"
+    "meetcap-core": "workspace:*"
   },
   "peerDependencies": {
-    "electron": ">=31 <39",
     "react": ">=17",
     "vue": ">=3"
   },
   "peerDependenciesMeta": {
-    "electron": { "optional": true },
     "react": { "optional": true },
     "vue": { "optional": true }
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
     "@types/react": "^18.3.18",
-    "electron": "38.2.2",
     "react": "^18.3.1",
     "typescript": "^5.6.3",
     "vitest": "^2.1.8",

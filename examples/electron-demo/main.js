@@ -5,7 +5,7 @@
 // meetcap-* packages; everything process-specific lives inside them.
 const { app, BrowserWindow } = require('electron')
 const path = require('path')
-const { initRecorderMain } = require('meetcap-recorder/main')
+const { initRecorderMain } = require('meetcap-recorder-main')
 const { startDetector } = require('meetcap-detector/main')
 
 // MUST run before app is ready — initRecorderMain injects the macOS loopback

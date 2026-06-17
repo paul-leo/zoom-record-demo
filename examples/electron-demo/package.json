@@ -12,7 +12,8 @@
   "dependencies": {
     "meetcap-core": "workspace:*",
     "meetcap-detector": "workspace:*",
-    "meetcap-recorder": "workspace:*"
+    "meetcap-recorder-main": "workspace:*",
+    "meetcap-recorder-renderer": "workspace:*"
   },
   "devDependencies": {
     "@harness-fe/runtime": "^4.1.0",

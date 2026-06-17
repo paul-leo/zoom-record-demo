@@ -6,23 +6,24 @@ meetcap answers one question honestly: can an Electron app notice you've joined 
 
 It ships as two focused packages plus a shared core, so you take only what you need.
 
-| Package | What it does |
-|---|---|
-| [`meetcap-detector`](packages/detector) | Detect that a meeting client is in a call, by window title + process name, with custom rules. |
-| [`meetcap-recorder`](packages/recorder) | Record mic + system (loopback) audio and save to disk. Real macOS loopback. |
-| [`meetcap-core`](packages/core) | Shared types, the IPC contract, and the `window.meetcap` preload bridge. |
+| Package | Process | What it does |
+|---|---|---|
+| [`meetcap-detector`](packages/detector) | main + renderer | Detect a meeting client in a call, by window title + process name, with custom rules. `/main` poller, `/renderer` event client. |
+| [`meetcap-recorder-main`](packages/recorder-main) | main | macOS loopback flags + save-recording + media-access. |
+| [`meetcap-recorder-renderer`](packages/recorder-renderer) | renderer | Capture mic + system audio, mix, record, save. Framework-agnostic + React/Vue hooks. |
+| [`meetcap-core`](packages/core) | shared | Shared types, the IPC contract, and the `window.meetcap` preload bridge. |
 
-Each renderer half ships **framework-agnostic events**, plus **React hooks** and **Vue composables**.
+Recording is split into separate **main** and **renderer** packages so you never import the wrong half into the wrong process. Detection is a single package with `/main` and `/renderer` entries (its renderer side is just event subscription). The recorder renderer ships framework-agnostic events plus React hooks and Vue composables.
 
 ## Quick start
 
 ```bash
-npm install meetcap-detector meetcap-recorder meetcap-core
+npm install meetcap-core meetcap-detector meetcap-recorder-main meetcap-recorder-renderer
 ```
 
 ```ts
 // main.ts — runs before app.whenReady()
-import { initRecorderMain } from 'meetcap-recorder/main'
+import { initRecorderMain } from 'meetcap-recorder-main'
 import { startDetector } from 'meetcap-detector/main'
 initRecorderMain()
 app.whenReady().then(() => { createWindow(); startDetector({ require: 'window' }) })
@@ -34,7 +35,7 @@ exposeMeetcapBridge(contextBridge, ipcRenderer)
 
 // renderer
 import { createDetectorClient } from 'meetcap-detector/renderer'
-import { createRecorder } from 'meetcap-recorder/renderer'
+import { createRecorder } from 'meetcap-recorder-renderer'
 const detector = createDetectorClient()
 const recorder = createRecorder()
 detector.on('meeting-detected', (m) => recorder.start(m))
