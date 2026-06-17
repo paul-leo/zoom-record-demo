@@ -100,6 +100,10 @@ pnpm test         # vitest: rule engine, state machine, pure helpers
 pnpm demo         # build + launch examples/electron-demo
 ```
 
+## Debugging the demo
+
+The demo is wired for AI-agent debugging via [harness-fe](https://github.com/Morphicai/harness-fe) in **solo mode** — a tokenless local gateway on `127.0.0.1:47620`. Install the skill (`npx @harness-fe/skill install`), reload MCP (`.mcp.json` is committed), run `pnpm demo`, and an agent can stream console/network/DOM and drive the window. Full guide: [docs/debugging.md](docs/debugging.md).
+
 ## Release
 
 Changesets-driven. In a PR: `pnpm changeset` to declare bumps. On merge to `main`, CI opens a **Version Packages** PR; merging it publishes to npm (OIDC trusted publishing with NPM_TOKEN fallback). See `.github/workflows/release.yml`.

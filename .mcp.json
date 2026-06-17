@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "harness-fe": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@harness-fe/cli", "mcp"],
+      "env": { "HARNESS_PORT": "47620" }
+    }
+  }
+}

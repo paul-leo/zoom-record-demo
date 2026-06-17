@@ -1,5 +1,18 @@
 // meetcap demo — UI wiring. Consumes meetcap-detector + meetcap-recorder via
 // their renderer entries (which talk to the main process over window.meetcap).
+
+// Connect the harness-fe runtime to the local solo gateway so an AI agent can
+// inspect/drive this window over MCP (console at http://127.0.0.1:47620/console).
+// Port 47620 is meetcap's own — keeps the gateway off harness's default 47729 and
+// any other dev server. Solo mode is loopback + tokenless, so this example just
+// always instruments. Keep behind a flag if you copy this into a shipping app.
+;(window as unknown as { __HARNESS_FE__?: unknown }).__HARNESS_FE__ = {
+  projectId: 'meetcap-demo',
+  mcpUrl: 'ws://127.0.0.1:47620/ws',
+  overlay: true,
+}
+void import('@harness-fe/runtime')
+
 import { createDetectorClient } from 'meetcap-detector/renderer'
 import { createRecorder } from 'meetcap-recorder/renderer'
 import type { MeetingInfo } from 'meetcap-core'
