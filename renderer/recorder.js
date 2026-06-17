@@ -36,13 +36,16 @@ class CallRecorderSDK {
   init(intervalMs = 3000) {
     const tick = async () => {
       try {
+        // Dual signal: window title (says "in a meeting") + process name (robust,
+        // no i18n). Title is the trigger; process is logged as a confidence cue.
         const meeting = await window.recorderBridge.detectMeeting()
         const hasMeeting = meeting !== null
 
         if (hasMeeting && !this.lastHadMeeting) {
-          this.activeMeeting = meeting
+          const proc = await window.recorderBridge.detectProcess()
+          this.activeMeeting = { ...meeting, process: proc?.name || null }
           this.lastHadMeeting = true
-          this.emit('meeting-detected', meeting)
+          this.emit('meeting-detected', this.activeMeeting)
         }
         if (!hasMeeting && this.lastHadMeeting) {
           this.lastHadMeeting = false
@@ -65,20 +68,22 @@ class CallRecorderSDK {
     const mic = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
     this.emit('log', `mic tracks: ${mic.getAudioTracks().length}`)
 
-    this.emit('log', 'getScreenSource() via bridge…')
-    const screen = await window.recorderBridge.getScreenSource()
-    if (!screen) throw new Error('No screen source available')
-
-    this.emit('log', `getUserMedia(desktop audio) src=${screen.id}…`)
-    const system = await navigator.mediaDevices.getUserMedia({
-      audio: {
-        mandatory: {
-          chromeMediaSource: 'desktop',
-          chromeMediaSourceId: screen.id,
-        },
-      },
-      video: false,
-    })
+    // Electron 38: legacy getUserMedia({mandatory:{chromeMediaSource:'desktop'}})
+    // crashes the renderer ("bad IPC message, reason 263"). The supported path is
+    // getDisplayMedia, routed through main's setDisplayMediaRequestHandler which
+    // injects { audio: 'loopback' }. We ask for video too (required to trigger the
+    // handler) then immediately drop the video track — we only want the audio.
+    this.emit('log', 'getDisplayMedia(loopback audio)…')
+    // electron-audio-loopback: enable the loopback display-media handler (which
+    // also injected the macOS feature flags at startup), capture, then disable.
+    await window.recorderBridge.enableLoopbackAudio()
+    let system
+    try {
+      system = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true })
+    } finally {
+      await window.recorderBridge.disableLoopbackAudio()
+    }
+    system.getVideoTracks().forEach((t) => t.stop())
     const sysTracks = system.getAudioTracks().length
     this.emit('log', `system audio tracks: ${sysTracks}${sysTracks === 0 ? '  ⚠️ EMPTY — no loopback' : ''}`)
 
