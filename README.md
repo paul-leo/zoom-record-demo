@@ -42,7 +42,7 @@ detector.on('meeting-detected', (m) => recorder.start(m))
 recorder.on('complete', (r) => recorder.save(r))
 ```
 
-See [`examples/electron-demo`](examples/electron-demo) for a complete, runnable app.
+See [`examples/electron-demo`](examples/electron-demo) for a complete, runnable app, and the **[recording lifecycle & integration guide](docs/recording-lifecycle.md)** for which events to wire, when recording starts/ends, segmented vs whole-file upload, and crash-resume.
 
 ## Architecture: who runs where
 
