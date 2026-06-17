@@ -14,7 +14,12 @@
 void import('@harness-fe/runtime')
 
 import { createDetectorClient } from 'meetcap-detector/renderer'
-import { createRecorder, listInterruptedRecordings } from 'meetcap-recorder-renderer'
+import {
+  createRecorder,
+  listInterruptedRecordings,
+  requestPermissions,
+  openScreenRecordingSettings,
+} from 'meetcap-recorder-renderer'
 import type { MeetingInfo } from 'meetcap-core'
 
 const $ = (id: string) => document.getElementById(id) as HTMLElement
@@ -150,6 +155,15 @@ $('btn-list').onclick = async () => {
   const wins = await window.meetcap.listWindows()
   log(`--- ${wins.length} sources ---`)
   wins.forEach((w) => log(`  ${w.id}  ${w.name}`))
+}
+$('btn-perms').onclick = async () => {
+  log('requesting permissions…')
+  const p = await requestPermissions()
+  await refreshPerms()
+  if (p.screen !== 'granted' && p.screen !== 'n/a') {
+    log('screen recording not granted — opening System Settings (toggle meetcap, then restart)')
+    void openScreenRecordingSettings()
+  }
 }
 
 // ── init ──────────────────────────────────────────────────────────────────────

@@ -241,3 +241,23 @@ export function createRecorder(options: CreateRecorderOptions = {}): Recorder {
 export function listInterruptedRecordings() {
   return window.meetcap.listInterruptedRecordings()
 }
+
+/**
+ * Pre-flight permissions (mic + screen recording) up front — call at app start
+ * or from a settings screen so the first recording isn't blocked by a prompt.
+ * Returns the resulting status; on macOS, screen recording may still need the
+ * user to toggle it in System Settings + restart (see openScreenRecordingSettings).
+ */
+export function requestPermissions() {
+  return window.meetcap.requestPermissions()
+}
+
+/** Open the macOS Screen Recording privacy pane (no-op on other platforms). */
+export function openScreenRecordingSettings() {
+  return window.meetcap.openScreenRecordingSettings()
+}
+
+/** Current permission status without prompting. */
+export function getPermissionStatus() {
+  return window.meetcap.mediaAccess()
+}

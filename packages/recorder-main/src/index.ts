@@ -14,7 +14,7 @@
  * leaves a partial-but-playable file. A sidecar manifest (`<key>.meetcap.json`)
  * tracks a logical recording across segments, enabling crash recovery / resume.
  */
-import { app, ipcMain, shell, systemPreferences } from 'electron'
+import { app, desktopCapturer, ipcMain, shell, systemPreferences } from 'electron'
 import { initMain } from 'electron-audio-loopback'
 import {
   IPC,
@@ -166,6 +166,40 @@ export function initRecorderMain(options: InitRecorderMainOptions = {}): void {
       platform: 'darwin',
       screen: systemPreferences.getMediaAccessStatus('screen'),
       microphone: systemPreferences.getMediaAccessStatus('microphone'),
+    }
+  })
+
+  // Pre-flight permissions so the first recording isn't blocked by a prompt.
+  ipcMain.handle(IPC.requestPermissions, async (): Promise<PermissionStatus> => {
+    if (process.platform !== 'darwin') {
+      return { platform: process.platform, screen: 'n/a', microphone: 'n/a' }
+    }
+    // Mic: native prompt (returns once the user answers).
+    try {
+      await systemPreferences.askForMediaAccess('microphone')
+    } catch {
+      // ignore — status is read below regardless
+    }
+    // Screen recording can't be granted programmatically. A getSources() call
+    // registers the app in System Settings → Privacy → Screen Recording so the
+    // user can toggle it (then the app must restart to pick it up).
+    let screen = systemPreferences.getMediaAccessStatus('screen')
+    if (screen !== 'granted') {
+      try {
+        await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 1, height: 1 } })
+      } catch {
+        // ignore
+      }
+      screen = systemPreferences.getMediaAccessStatus('screen')
+    }
+    return { platform: 'darwin', screen, microphone: systemPreferences.getMediaAccessStatus('microphone') }
+  })
+
+  ipcMain.handle(IPC.openScreenSettings, () => {
+    if (process.platform === 'darwin') {
+      void shell.openExternal(
+        'x-apple.systempreferences:com.apple.preference.security?Privacy_ScreenCapture',
+      )
     }
   })
 }

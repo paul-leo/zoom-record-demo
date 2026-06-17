@@ -35,6 +35,9 @@ export function exposeMeetcapBridge(
     },
     listWindows: () => ipcRenderer.invoke(IPC.listWindows) as ReturnType<MeetcapBridge['listWindows']>,
     mediaAccess: () => ipcRenderer.invoke(IPC.mediaAccess) as ReturnType<MeetcapBridge['mediaAccess']>,
+    requestPermissions: () =>
+      ipcRenderer.invoke(IPC.requestPermissions) as ReturnType<MeetcapBridge['requestPermissions']>,
+    openScreenRecordingSettings: () => ipcRenderer.invoke(IPC.openScreenSettings) as Promise<void>,
     openRecording: (args: Parameters<MeetcapBridge['openRecording']>[0]) =>
       ipcRenderer.invoke(IPC.recordingOpen, args) as ReturnType<MeetcapBridge['openRecording']>,
     writeRecordingChunk: (id: string, chunk: ArrayBuffer) =>

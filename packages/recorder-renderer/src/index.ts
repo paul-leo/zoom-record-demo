@@ -10,6 +10,9 @@
 export {
   createRecorder,
   listInterruptedRecordings,
+  requestPermissions,
+  openScreenRecordingSettings,
+  getPermissionStatus,
   type Recorder,
   type RecorderState,
   type CreateRecorderOptions,
@@ -17,4 +20,4 @@ export {
   type RecordingChunk,
 } from './renderer'
 export { pickMimeType, buildFilename } from './util'
-export type { RecordingResult, InterruptedRecording } from 'meetcap-core'
+export type { RecordingResult, InterruptedRecording, PermissionStatus } from 'meetcap-core'

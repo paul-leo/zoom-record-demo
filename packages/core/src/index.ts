@@ -148,6 +148,16 @@ export interface MeetcapBridge {
   listWindows(): Promise<WindowSource[]>
   /** macOS permission status. */
   mediaAccess(): Promise<PermissionStatus>
+  /**
+   * Pre-flight: request mic + screen-recording permission up front (e.g. at
+   * app start / a settings screen) so the first recording isn't blocked by a
+   * prompt. On macOS the mic prompt is native; screen recording can't be
+   * granted silently — the app is registered in the list and you should send
+   * the user to settings (then restart). Returns the resulting status.
+   */
+  requestPermissions(): Promise<PermissionStatus>
+  /** Open the macOS Screen Recording privacy pane (no-op elsewhere). */
+  openScreenRecordingSettings(): Promise<void>
   /** Open a recording segment and start streaming (new or resumed). */
   openRecording(args: OpenRecordingArgs): Promise<RecordingHandle>
   /** Append one chunk of bytes to an open segment (called per timeslice). */
@@ -178,6 +188,8 @@ export const IPC = {
   detectorEvent: 'meetcap:detector-event',
   listWindows: 'meetcap:list-windows',
   mediaAccess: 'meetcap:media-access',
+  requestPermissions: 'meetcap:request-permissions',
+  openScreenSettings: 'meetcap:open-screen-settings',
   recordingOpen: 'meetcap:recording-open',
   recordingWrite: 'meetcap:recording-write',
   recordingClose: 'meetcap:recording-close',

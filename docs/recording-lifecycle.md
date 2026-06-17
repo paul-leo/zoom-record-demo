@@ -131,6 +131,32 @@ Also: `detector.current`, `detector.isInMeeting`.
 
 `initRecorderMain({ saveDir, revealInFolder })` controls where files land (default `<downloads>/meetcap`) and whether to reveal in the OS file manager.
 
+## Permissions — request up front
+
+On macOS, recording needs **Microphone** + **Screen Recording**. If you wait until
+`start()`, the first capture is blocked by a prompt — and screen recording is
+worse: granting it requires an **app restart**, so that recording fails outright.
+
+Request ahead of time (app launch / a settings screen):
+
+```ts
+import { requestPermissions, openScreenRecordingSettings, getPermissionStatus } from 'meetcap-recorder-renderer'
+
+const status = await requestPermissions() // mic = native prompt; screen = registers the app
+if (status.screen !== 'granted') {
+  // Screen recording can't be granted silently — send the user to settings, then restart.
+  await openScreenRecordingSettings()
+}
+```
+
+- `requestPermissions()` — pops the native mic prompt and registers the app in
+  System Settings → Privacy → Screen Recording. Returns the resulting `PermissionStatus`.
+- `openScreenRecordingSettings()` — deep-links to that pane (no-op off macOS).
+- `getPermissionStatus()` — read current status without prompting.
+
+Built-in detection rules need no permissions and work out of the box — `startDetector()`
+defaults to the `presets` (Zoom / Teams / 腾讯会议 / 飞书).
+
 ## Try it — the demo
 
 `examples/electron-demo` wires all of the above. See it run:
