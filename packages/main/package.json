@@ -1,28 +1,48 @@
 {
   "name": "meetcap-main",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Main-process half of meetcap: detect native meeting clients (Zoom / Teams / Tencent / Lark) + set up loopback recording, save & media-access IPC. Electron.",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
     "./package.json": "./package.json"
   },
-  "files": ["dist", "README.md", "LICENSE"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run"
   },
-  "publishConfig": { "access": "public" },
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/paul-leo/meetcap.git",
     "directory": "packages/main"
   },
-  "keywords": ["electron", "zoom", "meeting", "detection", "audio", "recorder", "loopback", "system-audio", "ps-list", "meetcap"],
+  "keywords": [
+    "electron",
+    "zoom",
+    "meeting",
+    "detection",
+    "audio",
+    "recorder",
+    "loopback",
+    "system-audio",
+    "ps-list",
+    "meetcap"
+  ],
   "dependencies": {
     "meetcap-core": "workspace:*",
     "electron-audio-loopback": "^1.0.6",
@@ -32,7 +52,9 @@
     "electron": ">=31 <39"
   },
   "peerDependenciesMeta": {
-    "electron": { "optional": true }
+    "electron": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
